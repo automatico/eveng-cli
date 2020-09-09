@@ -72,10 +72,6 @@ func auth(server eveServer) http.Cookie {
 	}
 	defer resp.Body.Close()
 
-	// fmt.Println("response Status:", resp.Status)
-	// fmt.Println("response Headers:", resp.Header)
-	// fmt.Println("response Cookie:", resp.Cookies())
-
 	// unetlab_session=a1e6e0b1-3435-4d69-aae6-8b93aa4de746; Path=/api/
 	cookieText := getSubstring(resp.Header.Get("Set-Cookie"), "=", ";")
 	fmt.Println("cookieText: ", cookieText)
