@@ -20,13 +20,18 @@ type eveServer struct {
 
 func main() {
 
-	config := config()
-	cookie := auth(config)
-	getStatus(config, cookie)
+	server := serverConfig()
+	cookie := server.auth()
+	response := server.getStatus(cookie)
+
+	// defer response.Body.Close()
+	fmt.Println("response Status:", response.Status)
+	fmt.Println("response Headers:", response.Header)
+	// fmt.Println("response Body:", string(ioutil.ReadAll(response.Body)))
 
 }
 
-func config() eveServer {
+func serverConfig() eveServer {
 	var eve eveServer
 
 	content, err := ioutil.ReadFile(".eve.json")
@@ -40,7 +45,7 @@ func config() eveServer {
 	return eve
 }
 
-func auth(server eveServer) http.Cookie {
+func (es eveServer) auth() http.Cookie {
 
 	// Allow insecure TLS certificate
 	// https://stackoverflow.com/questions/12122159/how-to-do-a-https-request-with-bad-certificate
@@ -50,11 +55,13 @@ func auth(server eveServer) http.Cookie {
 	// https://ednsquare.com/story/how-to-make-http-requests-in-golang------5VIjL3
 	// http://networkbit.ch/golang-http-client/
 	data, _ := json.Marshal(map[string]string{
-		"username": server.Username,
-		"password": server.Password,
+		"username": es.Username,
+		"password": es.Password,
 	})
 
-	req, err := http.NewRequest("POST", fmt.Sprintf(`https://%s/api/auth/login`, server.Server), bytes.NewBuffer(data))
+	loginURL := fmt.Sprintf(`https://%s/api/auth/login`, es.Server)
+
+	req, err := http.NewRequest("POST", loginURL, bytes.NewBuffer(data))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
@@ -74,7 +81,6 @@ func auth(server eveServer) http.Cookie {
 
 	// unetlab_session=a1e6e0b1-3435-4d69-aae6-8b93aa4de746; Path=/api/
 	cookieText := getSubstring(resp.Header.Get("Set-Cookie"), "=", ";")
-	fmt.Println("cookieText: ", cookieText)
 
 	cookie := http.Cookie{
 		Name:  "unetlab_session",
@@ -83,10 +89,10 @@ func auth(server eveServer) http.Cookie {
 	return cookie
 }
 
-func getStatus(server eveServer, cookie http.Cookie) {
+func (es eveServer) getStatus(cookie http.Cookie) *http.Response {
 	data, _ := json.Marshal(map[string]string{})
 
-	req, err := http.NewRequest("GET", fmt.Sprintf(`https://%s/api/status`, server.Server), bytes.NewBuffer(data))
+	req, err := http.NewRequest("GET", fmt.Sprintf(`https://%s/api/status`, es.Server), bytes.NewBuffer(data))
 	if err != nil {
 		log.Fatal("Error reading request. ", err)
 	}
@@ -107,13 +113,9 @@ func getStatus(server eveServer, cookie http.Cookie) {
 	if err != nil {
 		log.Fatal("Error reading response. ", err)
 	}
-	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	return resp
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	fmt.Println("response Body:", string(body))
 }
 
 func getSubstring(str string, start string, end string) string {
