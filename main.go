@@ -15,9 +15,9 @@ import (
 )
 
 type eveServer struct {
-	Server   string
-	Username string
-	Password string
+	Server   string `json:"server"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func main() {
@@ -31,6 +31,8 @@ func main() {
 	fmt.Println("response Headers:", response.Header)
 	fmt.Print("response Body: ")
 	io.Copy(os.Stdout, response.Body)
+	jsonData := eveServerToJSON(server)
+	jsonToFile("output.json", jsonData, 0600)
 }
 
 func serverConfig() eveServer {
@@ -45,6 +47,26 @@ func serverConfig() eveServer {
 	json.Unmarshal([]byte(content), &eve)
 
 	return eve
+}
+
+func jsonToFile(fileName string, bs []byte, permissions os.FileMode) {
+	// https://www.geeksforgeeks.org/how-to-read-and-write-the-files-in-golang/
+	// https://stackoverflow.com/questions/24770403/write-struct-to-json-file-using-struct-fields-not-json-keys
+
+	ioutil.WriteFile(fileName, bs, permissions)
+}
+
+// Convert an eveServer struct to a JSON byte slice
+func eveServerToJSON(es eveServer) []byte {
+
+	jsonData, err := json.Marshal(es)
+
+	if err != nil {
+		log.Println("failed marshaling data: ", err)
+	}
+
+	return jsonData
+
 }
 
 func (es eveServer) auth() http.Cookie {
