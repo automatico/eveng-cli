@@ -5,9 +5,11 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -24,11 +26,11 @@ func main() {
 	cookie := server.auth()
 	response := server.getStatus(cookie)
 
-	// defer response.Body.Close()
+	defer response.Body.Close()
 	fmt.Println("response Status:", response.Status)
 	fmt.Println("response Headers:", response.Header)
-	// fmt.Println("response Body:", string(ioutil.ReadAll(response.Body)))
-
+	fmt.Print("response Body: ")
+	io.Copy(os.Stdout, response.Body)
 }
 
 func serverConfig() eveServer {
