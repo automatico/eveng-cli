@@ -29,11 +29,24 @@ func main() {
 	// response := server.getRequest(fmt.Sprintf(`https://%s/api/users/`, server.Server), cookie)
 
 	// List Folders
-	// Not working
-	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs`, server.Server), cookie)
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
 
 	// List Roles
-	response := server.getRequest(fmt.Sprintf(`https://%s/api/list/roles`, server.Server), cookie)
+	//response := server.getRequest(fmt.Sprintf(`https://%s/api/list/roles`, server.Server), cookie)
+
+	// List templates
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/list/templates/`, server.Server), cookie)
+
+	// List Lab
+	// docs are wrong
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl`, server.Server), cookie)
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
+
+	// List nodes in a lab
+	response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/orhan-ergun/BGP_Lab_Initial_and_Full_Configs_Pro.unl/nodes`, server.Server), cookie)
+
+	// get a node in a lab
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/2`, server.Server), cookie)
 
 	defer response.Body.Close()
 	fmt.Println("response Status:", response.Status)
@@ -93,6 +106,7 @@ func (es eveServer) auth() http.Cookie {
 	data, _ := json.Marshal(map[string]string{
 		"username": es.Username,
 		"password": es.Password,
+		"html5":    "0", // Set this or you will get HTML links for the Node URL's
 	})
 
 	loginURL := fmt.Sprintf(`https://%s/api/auth/login`, es.Server)
@@ -193,6 +207,7 @@ func (es eveServer) getRequest(url string, cookie http.Cookie) *http.Response {
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	req.AddCookie(&cookie)
 
