@@ -43,21 +43,40 @@ func main() {
 	// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
 
 	// List nodes in a lab
-	response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/orhan-ergun/BGP_Lab_Initial_and_Full_Configs_Pro.unl/nodes`, server.Server), cookie)
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes`, server.Server), cookie)
 
 	// get a node in a lab
 	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/2`, server.Server), cookie)
 
-	defer response.Body.Close()
-	fmt.Println("response Status:", response.Status)
-	fmt.Println("response Headers:", response.Header)
-	fmt.Print("response Body: ")
+	// Stop all nodes in a lab
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/1/stop`, server.Server), cookie)
 
-	io.Copy(os.Stdout, response.Body)
-	fmt.Println("")
+	// Start all nodes in a lab
+	// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/start`, server.Server), cookie)
 
+	status := server.getStatus(cookie)
+	printResponse(status)
+
+	folders := server.getFolders(cookie)
+	printResponse(folders)
+
+	roles := server.getRoles(cookie)
+	printResponse(roles)
+
+	users := server.getUsers(cookie)
+	printResponse(users)
+	// Write JSON to file
 	// jsonData := eveServerToJSON(server)
 	// jsonToFile("output.json", jsonData, 0600)
+}
+
+func printResponse(r *http.Response) {
+	fmt.Println("response Status:", r.Status)
+	fmt.Println("response Headers:", r.Header)
+	fmt.Print("response Body: ")
+
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println("")
 }
 
 func serverConfig() eveServer {
@@ -140,64 +159,30 @@ func (es eveServer) auth() http.Cookie {
 }
 
 func (es eveServer) getStatus(cookie http.Cookie) *http.Response {
-	data, _ := json.Marshal(map[string]string{})
-
-	req, err := http.NewRequest("GET", fmt.Sprintf(`https://%s/api/status`, es.Server), bytes.NewBuffer(data))
-	if err != nil {
-		log.Fatal("Error reading request. ", err)
-	}
-
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-
-	req.AddCookie(&cookie)
-
-	if err != nil {
-		log.Fatal("Error reading body. ", err)
-	}
-
-	// Set client timeout
-	client := &http.Client{Timeout: time.Second * 10}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Error reading response. ", err)
-	}
-
+	url := fmt.Sprintf(`https://%s/api/status`, es.Server)
+	resp := getRequest(url, cookie)
 	return resp
-
 }
 
 func (es eveServer) getFolders(cookie http.Cookie) *http.Response {
-	data, _ := json.Marshal(map[string]string{})
-
-	req, err := http.NewRequest("GET", fmt.Sprintf(`https://%s/api/folders`, es.Server), bytes.NewBuffer(data))
-	if err != nil {
-		log.Fatal("Error reading request. ", err)
-	}
-
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-
-	req.AddCookie(&cookie)
-
-	if err != nil {
-		log.Fatal("Error reading body. ", err)
-	}
-
-	// Set client timeout
-	client := &http.Client{Timeout: time.Second * 10}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Error reading response. ", err)
-	}
-
+	url := fmt.Sprintf(`https://%s/api/folders/`, es.Server)
+	resp := getRequest(url, cookie)
 	return resp
-
 }
 
-func (es eveServer) getRequest(url string, cookie http.Cookie) *http.Response {
+func (es eveServer) getRoles(cookie http.Cookie) *http.Response {
+	url := fmt.Sprintf(`https://%s/api/list/roles`, es.Server)
+	resp := getRequest(url, cookie)
+	return resp
+}
+
+func (es eveServer) getUsers(cookie http.Cookie) *http.Response {
+	url := fmt.Sprintf(`https://%s/api/users/`, es.Server)
+	resp := getRequest(url, cookie)
+	return resp
+}
+
+func getRequest(url string, cookie http.Cookie) *http.Response {
 	data, _ := json.Marshal(map[string]string{})
 
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer(data))
@@ -224,6 +209,18 @@ func (es eveServer) getRequest(url string, cookie http.Cookie) *http.Response {
 	}
 
 	return resp
+
+}
+
+func postRequest() {
+
+}
+
+func putRequest() {
+
+}
+
+func deleteRequest() {
 
 }
 
