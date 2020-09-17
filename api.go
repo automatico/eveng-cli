@@ -1,19 +1,14 @@
-package cmd
+package main
 
 import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 	"time"
-
-	"github.com/spf13/cobra"
 )
 
 type eveServer struct {
@@ -22,14 +17,56 @@ type eveServer struct {
 	Password string `json:"password"`
 }
 
-func printResponse(r *http.Response) {
-	fmt.Println("response Status:", r.Status)
-	fmt.Println("response Headers:", r.Header)
-	fmt.Print("response Body: ")
+// func main() {
+//
+// 	server := serverConfig()
+// 	cookie := server.auth()
 
-	io.Copy(os.Stdout, r.Body)
-	fmt.Println("")
-}
+// List Users
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/users/`, server.Server), cookie)
+
+// List Folders
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
+
+// List Roles
+//response := server.getRequest(fmt.Sprintf(`https://%s/api/list/roles`, server.Server), cookie)
+
+// List templates
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/list/templates/`, server.Server), cookie)
+
+// List Lab
+// docs are wrong
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl`, server.Server), cookie)
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
+
+// List nodes in a lab
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes`, server.Server), cookie)
+
+// get a node in a lab
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/2`, server.Server), cookie)
+
+// Stop all nodes in a lab
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/1/stop`, server.Server), cookie)
+
+// Start all nodes in a lab
+// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/start`, server.Server), cookie)
+
+// status := server.getStatus(cookie)
+// printResponse(status)
+
+// folders := server.getFolders(cookie)
+// printResponse(folders)
+
+// roles := server.getRoles(cookie)
+// printResponse(roles)
+
+// users := server.getUsers(cookie)
+// printResponse(users)
+
+// Write JSON to file
+// jsonData := eveServerToJSON(server)
+// jsonToFile("output.json", jsonData, 0600)
+// }
 
 func serverConfig() eveServer {
 	var eve eveServer
@@ -43,6 +80,19 @@ func serverConfig() eveServer {
 	json.Unmarshal([]byte(content), &eve)
 
 	return eve
+}
+
+// Convert an eveServer struct to a JSON byte slice
+func eveServerToJSON(es eveServer) []byte {
+
+	jsonData, err := json.Marshal(es)
+
+	if err != nil {
+		log.Println("failed marshaling data: ", err)
+	}
+
+	return jsonData
+
 }
 
 func (es eveServer) auth() http.Cookie {
@@ -96,6 +146,24 @@ func (es eveServer) getStatus(cookie http.Cookie) *http.Response {
 	return resp
 }
 
+func (es eveServer) getFolders(cookie http.Cookie) *http.Response {
+	url := fmt.Sprintf(`https://%s/api/folders/`, es.Server)
+	resp := getRequest(url, cookie)
+	return resp
+}
+
+func (es eveServer) getRoles(cookie http.Cookie) *http.Response {
+	url := fmt.Sprintf(`https://%s/api/list/roles`, es.Server)
+	resp := getRequest(url, cookie)
+	return resp
+}
+
+func (es eveServer) getUsers(cookie http.Cookie) *http.Response {
+	url := fmt.Sprintf(`https://%s/api/users/`, es.Server)
+	resp := getRequest(url, cookie)
+	return resp
+}
+
 func getRequest(url string, cookie http.Cookie) *http.Response {
 	data, _ := json.Marshal(map[string]string{})
 
@@ -126,54 +194,14 @@ func getRequest(url string, cookie http.Cookie) *http.Response {
 
 }
 
-func getSubstring(str string, start string, end string) string {
-	// https://www.dotnetperls.com/between-before-after-go
-	// Get substring between two strings.
-	posFirst := strings.Index(str, start)
-	if posFirst == -1 {
-		return ""
-	}
-	posLast := strings.Index(str, end)
-	if posLast == -1 {
-		return ""
-	}
-	posFirstAdjusted := posFirst + len(start)
-	if posFirstAdjusted >= posLast {
-		return ""
-	}
-	return str[posFirstAdjusted:posLast]
+func postRequest() {
+
 }
 
-// labCmd represents the lab command
-var labCmd = &cobra.Command{
-	Use:   "lab",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+func putRequest() {
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// fmt.Println("lab called")
-		server := serverConfig()
-		cookie := server.auth()
-
-		status := server.getStatus(cookie)
-		printResponse(status)
-	},
 }
 
-func init() {
-	rootCmd.AddCommand(labCmd)
+func deleteRequest() {
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// labCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// labCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
