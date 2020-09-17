@@ -18,13 +18,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// fmt.Println("server called")
+		server := serverConfig()
+		cookie := server.auth()
 
 		if args[0] == "status" {
-			server := serverConfig()
-			cookie := server.auth()
 			status := server.getStatus(cookie)
 			printResponse(status)
+		} else if args[0] == "config" {
+			fmt.Println("Create credentials logic.")
 		} else {
 			fmt.Printf("Invalid argument: %s\n", args[0])
 		}

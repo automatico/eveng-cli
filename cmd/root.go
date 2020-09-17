@@ -18,9 +18,6 @@ var rootCmd = &cobra.Command{
 	Short: "Manage EVE-NG via the CLI",
 	Long: `eveng-cli is an application used to manage your eve-ng 
 	labs via the CLI.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
