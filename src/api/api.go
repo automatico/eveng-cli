@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"bytes"
@@ -9,67 +9,20 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	utils "eveng-cli/src/utils"
 )
 
-type eveServer struct {
+// EveServer ...
+type EveServer struct {
 	Server   string `json:"server"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-// func main() {
-//
-// 	server := serverConfig()
-// 	cookie := server.auth()
-
-// List Users
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/users/`, server.Server), cookie)
-
-// List Folders
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
-
-// List Roles
-//response := server.getRequest(fmt.Sprintf(`https://%s/api/list/roles`, server.Server), cookie)
-
-// List templates
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/list/templates/`, server.Server), cookie)
-
-// List Lab
-// docs are wrong
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl`, server.Server), cookie)
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/folders/`, server.Server), cookie)
-
-// List nodes in a lab
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes`, server.Server), cookie)
-
-// get a node in a lab
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/2`, server.Server), cookie)
-
-// Stop all nodes in a lab
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/1/stop`, server.Server), cookie)
-
-// Start all nodes in a lab
-// response := server.getRequest(fmt.Sprintf(`https://%s/api/labs/ccie-sp/tess.unl/nodes/start`, server.Server), cookie)
-
-// status := server.getStatus(cookie)
-// printResponse(status)
-
-// folders := server.getFolders(cookie)
-// printResponse(folders)
-
-// roles := server.getRoles(cookie)
-// printResponse(roles)
-
-// users := server.getUsers(cookie)
-// printResponse(users)
-
-// Write JSON to file
-// jsonData := eveServerToJSON(server)
-// jsonToFile("output.json", jsonData, 0600)
-// }
-
-func serverConfig() eveServer {
-	var eve eveServer
+// ServerConfig ...
+func ServerConfig() EveServer {
+	var eve EveServer
 
 	content, err := ioutil.ReadFile(".eve.json")
 
@@ -82,8 +35,9 @@ func serverConfig() eveServer {
 	return eve
 }
 
-// Convert an eveServer struct to a JSON byte slice
-func eveServerToJSON(es eveServer) []byte {
+// EveServerToJSON ..
+// Convert an EveServer struct to a JSON byte slice
+func EveServerToJSON(es EveServer) []byte {
 
 	jsonData, err := json.Marshal(es)
 
@@ -95,7 +49,8 @@ func eveServerToJSON(es eveServer) []byte {
 
 }
 
-func (es eveServer) auth() http.Cookie {
+// Auth ...
+func (es EveServer) Auth() http.Cookie {
 
 	// Allow insecure TLS certificate
 	// https://stackoverflow.com/questions/12122159/how-to-do-a-https-request-with-bad-certificate
@@ -131,7 +86,7 @@ func (es eveServer) auth() http.Cookie {
 	defer resp.Body.Close()
 
 	// unetlab_session=a1e6e0b1-3435-4d69-aae6-8b93aa4de746; Path=/api/
-	cookieText := getSubstring(resp.Header.Get("Set-Cookie"), "=", ";")
+	cookieText := utils.GetSubstring(resp.Header.Get("Set-Cookie"), "=", ";")
 
 	cookie := http.Cookie{
 		Name:  "unetlab_session",
@@ -140,25 +95,29 @@ func (es eveServer) auth() http.Cookie {
 	return cookie
 }
 
-func (es eveServer) getStatus(cookie http.Cookie) *http.Response {
+// GetStatus ...
+func (es EveServer) GetStatus(cookie http.Cookie) *http.Response {
 	url := fmt.Sprintf(`https://%s/api/status`, es.Server)
 	resp := getRequest(url, cookie)
 	return resp
 }
 
-func (es eveServer) getFolders(cookie http.Cookie) *http.Response {
+// GetFolders ...
+func (es EveServer) GetFolders(cookie http.Cookie) *http.Response {
 	url := fmt.Sprintf(`https://%s/api/folders/`, es.Server)
 	resp := getRequest(url, cookie)
 	return resp
 }
 
-func (es eveServer) getRoles(cookie http.Cookie) *http.Response {
+// GetRoles ...
+func (es EveServer) GetRoles(cookie http.Cookie) *http.Response {
 	url := fmt.Sprintf(`https://%s/api/list/roles`, es.Server)
 	resp := getRequest(url, cookie)
 	return resp
 }
 
-func (es eveServer) getUsers(cookie http.Cookie) *http.Response {
+// GetUsers ...
+func (es EveServer) GetUsers(cookie http.Cookie) *http.Response {
 	url := fmt.Sprintf(`https://%s/api/users/`, es.Server)
 	resp := getRequest(url, cookie)
 	return resp

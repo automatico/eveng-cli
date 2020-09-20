@@ -1,31 +1,39 @@
 package cmd
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 
 	"github.com/spf13/cobra"
+
+	"eveng-cli/src/api"
+	"eveng-cli/src/utils"
 )
 
 // serverCmd represents the server command
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Args: cobra.ExactArgs(1),
+	Short: "Inspect your EVE-NG server",
+	Long:  `eveng-cli server status`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		server := serverConfig()
-		cookie := server.auth()
+		server := api.ServerConfig()
+
+		cookie, err := utils.JSONCookieFileToStruct(".cookie.json")
+		if err != nil {
+			cookie = server.Auth()
+			utils.CookieToJSONFile(".cookie.json", cookie)
+		} else {
+			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
 
 		if args[0] == "status" {
-			status := server.getStatus(cookie)
-			printResponse(status)
+			status := server.GetStatus(cookie)
+			utils.PrintResponse(status)
 		} else if args[0] == "config" {
 			fmt.Println("Create credentials logic.")
+
 		} else {
 			fmt.Printf("Invalid argument: %s\n", args[0])
 		}
