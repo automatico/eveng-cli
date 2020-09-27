@@ -1,10 +1,13 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-
+	"crypto/tls"
 	"eveng-cli/src/api"
 	"eveng-cli/src/utils"
+	"fmt"
+	"net/http"
+
+	"github.com/spf13/cobra"
 )
 
 // labCmd represents the lab command
@@ -18,11 +21,18 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// fmt.Println("lab called")
-		server := api.ServerConfig()
-		cookie := server.Auth()
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
+		fmt.Println("lab called")
+		server := api.ServerConfig()
+		cookie, err := utils.JSONCookieFileToStruct(".cookie.json")
 		status := server.GetStatus(cookie)
+		statusCode, err := api.HTTPReturnCodes(status)
+		if err != nil && statusCode == 412 {
+			cookie = server.Auth()
+			utils.CookieToJSONFile(".cookie.json", cookie)
+		}
+
 		utils.PrintResponse(status)
 	},
 }

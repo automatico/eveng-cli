@@ -18,14 +18,18 @@ var serverCmd = &cobra.Command{
 	Long:  `eveng-cli server status`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		server := api.ServerConfig()
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
+		server := api.ServerConfig()
 		cookie, err := utils.JSONCookieFileToStruct(".cookie.json")
-		if err != nil {
+		// client := utils.SetupHTTPClient(false)
+
+		status := server.GetStatus(cookie)
+		statusCode, err := api.HTTPReturnCodes(status)
+
+		if err != nil && statusCode == 412 {
 			cookie = server.Auth()
 			utils.CookieToJSONFile(".cookie.json", cookie)
-		} else {
-			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		}
 
 		if args[0] == "status" {

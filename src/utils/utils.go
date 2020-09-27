@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,15 @@ import (
 	"os"
 	"strings"
 )
+
+// SetupHTTPClient ...
+func SetupHTTPClient(verifyHTTPS bool) *http.Client {
+	customTransport := http.DefaultTransport.(*http.Transport).Clone()
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: verifyHTTPS}
+	client := &http.Client{Transport: customTransport}
+
+	return client
+}
 
 // GetSubstring takes a string and returns the a
 // substring between two string characters.
